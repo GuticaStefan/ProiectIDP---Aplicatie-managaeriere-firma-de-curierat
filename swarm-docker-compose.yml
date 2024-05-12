@@ -1,0 +1,107 @@
+version: '3'
+
+services:
+  mysql:
+    image: mysql:latest
+    environment:
+      MYSQL_DATABASE: 'licenta_db'
+      MYSQL_USER: 'courier'
+      MYSQL_PASSWORD: 'courier'
+      MYSQL_ROOT_PASSWORD: 'courier'
+    ports:
+      - "3333:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      placement:
+        constraints: [ node.role == worker ]
+    networks:
+      - business
+      - authentication
+      - util
+
+  my-courier-app:
+    image: my-courier-app:latest
+    ports:
+      - "4000:8080"
+    environment:
+      SPRING_DATASOURCE_URL: 'jdbc:mysql://mysql:3306/licenta_db'
+      SPRING_DATASOURCE_USERNAME: 'courier'
+      SPRING_DATASOURCE_PASSWORD: 'courier'
+    depends_on:
+      - mysql
+    deploy:
+      replicas: 3
+      restart_policy:
+        condition: on-failure
+      placement:
+        constraints: [ node.role == worker ]
+    networks:
+      - business
+
+  my-courier-app-auth:
+    image: my-courier-app-auth:latest
+    ports:
+      - "5000:8080"
+    environment:
+      SPRING_DATASOURCE_URL: 'jdbc:mysql://mysql:3306/licenta_db'
+      SPRING_DATASOURCE_USERNAME: 'courier'
+      SPRING_DATASOURCE_PASSWORD: 'courier'
+    depends_on:
+      - mysql
+    deploy:
+      replicas: 3
+      restart_policy:
+        condition: on-failure
+      placement:
+        constraints: [ node.role == worker ]
+    networks:
+      - authentication
+
+  my-courier-app-db-util:
+    image: my-courier-app-db-util:latest
+    ports:
+      - "6000:8080"
+    environment:
+      SPRING_DATASOURCE_URL: 'jdbc:mysql://mysql:3306/licenta_db'
+      SPRING_DATASOURCE_USERNAME: 'courier'
+      SPRING_DATASOURCE_PASSWORD: 'courier'
+    depends_on:
+      - mysql
+    deploy:
+      replicas: 3
+      restart_policy:
+        condition: on-failure
+      placement:
+        constraints: [ node.role == worker ]
+    networks:
+      - util
+
+  portainer:
+    image: portainer/portainer-ce:latest
+    ports:
+      - "9000:9000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      placement:
+        constraints: [ node.role == manager ]
+    networks:
+      - business
+      - authentication
+
+volumes:
+  mysql_data:
+  portainer_data:
+
+networks:
+  business:
+  authentication:
+  util:
