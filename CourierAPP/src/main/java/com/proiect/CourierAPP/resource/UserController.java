@@ -1,5 +1,6 @@
 package com.proiect.CourierAPP.resource;
 
+import com.proiect.CourierAPP.dtos.AddOrderDto;
 import com.proiect.CourierAPP.dtos.PasswordDto;
 import com.proiect.CourierAPP.dtos.UserDto;
 import com.proiect.CourierAPP.dtos.UserUpdateDto;
@@ -44,22 +45,16 @@ public class UserController {
         return userService.findByUserName(userName);
     }
 
-    @GetMapping("/firstName")
-    @ResponseStatus(HttpStatus.OK)
-    public List<UserDto> findByFirstName(@PathParam("firstName") String firstName) {
-        return userService.findByFirstName(firstName);
-    }
-
-    @GetMapping("/lastName")
-    @ResponseStatus(HttpStatus.OK)
-    public List<UserDto> findByLastName(@PathParam("lastName") String lastName) {
-        return userService.findByLastName(lastName);
-    }
-
     @DeleteMapping("/{userName}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteById(@PathVariable("userName") String userName) {
         userService.deleteByUserName(userName);
+    }
+
+    @PostMapping("/{userName}/userorders")
+    @ResponseStatus(HttpStatus.OK)
+    public UserDto addOrderToUser(@PathVariable String userName, @RequestBody @Valid AddOrderDto addOrderDto) {
+        return userService.addOrderToUser(userName, addOrderDto);
     }
 
 }

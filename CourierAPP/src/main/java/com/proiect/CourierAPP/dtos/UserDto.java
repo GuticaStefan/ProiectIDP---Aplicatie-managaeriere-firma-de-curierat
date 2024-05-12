@@ -8,6 +8,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.HashSet;
+import java.util.Set;
+
 
 @Data
 @AllArgsConstructor
@@ -30,6 +33,8 @@ public class UserDto {
     private String password;
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private Role role;
+
+    private Set<AddOrderDto> userOrders = new HashSet<>();
 
     public UserDto(String firstName, String lastName, String email, String phoneNumber, String userName) {
         this.firstName = firstName;

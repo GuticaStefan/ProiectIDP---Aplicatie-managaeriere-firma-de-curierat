@@ -1,11 +1,15 @@
 package com.proiect.CourierAPP.service;
+import com.proiect.CourierAPP.dtos.AddOrderDto;
 import com.proiect.CourierAPP.dtos.PasswordDto;
 import com.proiect.CourierAPP.dtos.UserDto;
 import com.proiect.CourierAPP.dtos.UserUpdateDto;
+import com.proiect.CourierAPP.enums.OrderStatus;
 import com.proiect.CourierAPP.exceptions.IncorrectOldPasswordException;
 import com.proiect.CourierAPP.exceptions.UnauthorizedUserException;
 import com.proiect.CourierAPP.exceptions.UserNotFoundException;
+import com.proiect.CourierAPP.model.Order;
 import com.proiect.CourierAPP.model.User;
+import com.proiect.CourierAPP.repository.OrderRepository;
 import com.proiect.CourierAPP.repository.TokenRepository;
 import com.proiect.CourierAPP.repository.UserRepository;
 import lombok.AllArgsConstructor;
@@ -15,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,6 +28,8 @@ import java.util.Optional;
 @Slf4j
 public class UserService {
     private final UserRepository userRepository;
+    private final OrderRepository orderRepository;
+    private final OrderService orderService;
     private final TokenRepository tokenRepository;
     private final ModelMapper modelMapper;
     private final TokenService tokenService;
@@ -39,10 +46,18 @@ public class UserService {
             }
 
             return modelMapper.map(user.map(u -> {
-                u.setFirstName(userUpdateDto.getFirstName());
-                u.setLastName(userUpdateDto.getLastName());
-                u.setEmail(userUpdateDto.getEmail());
-                u.setPhoneNumber(userUpdateDto.getEmail());
+                if (userUpdateDto.getFirstName() != null) {
+                    u.setFirstName(userUpdateDto.getFirstName());
+                }
+                if (userUpdateDto.getLastName() != null) {
+                    u.setLastName(userUpdateDto.getLastName());
+                }
+                if (userUpdateDto.getEmail() != null) {
+                    u.setEmail(userUpdateDto.getEmail());
+                }
+                if (userUpdateDto.getPhoneNumber() != null) {
+                    u.setPhoneNumber(userUpdateDto.getEmail());
+                }
                 return userRepository.save(u);
             }), UserDto.class);
 
@@ -120,7 +135,29 @@ public class UserService {
         } else {
             throw new UnauthorizedUserException();
         }
+    }
 
+    public UserDto addOrderToUser(String userName, AddOrderDto addOrderDto) {
+        if (tokenService.isAuthenticatedUser(userName) || tokenService.isAdmin()) {
+            var user = userRepository.findByUserName(userName).orElseThrow(UserNotFoundException::new);
+            var order = modelMapper.map(addOrderDto, Order.class);
+
+            order.setOrderDate(LocalDate.now());
+            order.setDeliveryDate(LocalDate.now().plusDays(4));
+            order.setUser(user);
+            order.setStatus(OrderStatus.PROCESSING);
+            order.setDescription(addOrderDto.getDescription());
+
+            orderRepository.save(order);
+
+            var orders = orderService.getAllOrdersByUserId(user.getId());
+            user.setUserOrders(orders);
+
+            return modelMapper.map(user, UserDto.class);
+
+        } else {
+            throw new UnauthorizedUserException();
+        }
     }
 
 }

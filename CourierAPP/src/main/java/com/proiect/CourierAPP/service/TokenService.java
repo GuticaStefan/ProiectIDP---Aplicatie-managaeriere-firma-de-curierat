@@ -17,7 +17,7 @@ public class TokenService {
             return tokenRepository.findAll().stream()
                     .anyMatch(t -> (!t.isExpired() &&
                             !t.isRevoked() &&
-                            t.getUser().getUserType().equals(Role.ADMIN)));
+                            t.getUser().getRole().equals(Role.ADMIN)));
         } else {
             throw new UserNotAuthenticatedException();
         }
@@ -32,13 +32,5 @@ public class TokenService {
         } else {
             throw new UserNotAuthenticatedException();
         }
-    }
-
-    public void deleteById(UUID id) {
-        tokenRepository.findAll().forEach(t -> {
-            if (t.getId().equals(id)) {
-                tokenRepository.deleteById(t.getId());
-            }
-        });
     }
 }

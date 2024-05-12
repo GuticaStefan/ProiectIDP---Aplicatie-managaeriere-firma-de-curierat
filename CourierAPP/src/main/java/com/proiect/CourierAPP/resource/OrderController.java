@@ -1,14 +1,15 @@
 package com.proiect.CourierAPP.resource;
 
+import com.proiect.CourierAPP.dtos.AddOrderDto;
+import com.proiect.CourierAPP.dtos.GetOrdersDto;
 import com.proiect.CourierAPP.model.Order;
 import com.proiect.CourierAPP.service.OrderService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/orders")
@@ -17,33 +18,26 @@ public class OrderController {
 
     private final OrderService orderService;
 
-
-    @PostMapping
-    public ResponseEntity<Order> createOrder(@RequestBody Order order) {
-        Order createdOrder = orderService.createOrder(order);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdOrder);
-    }
-
-    @GetMapping
-    public ResponseEntity<List<Order>> getAllOrders() {
-        List<Order> orders = orderService.getAllOrders();
+    @GetMapping("/{userName}")
+    public ResponseEntity<Set<GetOrdersDto>> getAllOrders(@PathVariable String userName) {
+        Set<GetOrdersDto> orders = orderService.getAllOrders(userName);
         return ResponseEntity.ok(orders);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<Order> getOrderById(@PathVariable Long id) {
-        Order order = orderService.getOrderById(id);
+    @GetMapping("/{userName}/{id}")
+    public ResponseEntity<GetOrdersDto> getOrderById(@PathVariable String userName, @PathVariable UUID id) {
+        GetOrdersDto order = orderService.getOrderById(userName, id);
         return ResponseEntity.ok(order);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Order> updateOrder(@PathVariable Long id, @RequestBody Order updatedOrder) {
-        Order order = orderService.updateOrder(id, updatedOrder);
+    @PutMapping("/{userName}/{id}")
+    public ResponseEntity<GetOrdersDto> updateOrder(@PathVariable UUID id, @RequestBody AddOrderDto updatedOrder, @PathVariable String userName) {
+        GetOrdersDto order = orderService.updateOrder(id, updatedOrder, userName);
         return ResponseEntity.ok(order);
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteOrder(@PathVariable Long id) {
+    @DeleteMapping("/{userName}/{id}")
+    public ResponseEntity<Void> deleteOrder(@PathVariable UUID id) {
         orderService.deleteOrder(id);
         return ResponseEntity.noContent().build();
     }

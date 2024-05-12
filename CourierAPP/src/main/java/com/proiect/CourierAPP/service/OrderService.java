@@ -1,14 +1,21 @@
 package com.proiect.CourierAPP.service;
 
-import com.proiect.CourierAPP.exceptions.EntityNotFoundException;
+import com.proiect.CourierAPP.dtos.AddOrderDto;
+import com.proiect.CourierAPP.dtos.GetOrdersDto;
+import com.proiect.CourierAPP.exceptions.OrderNotFoundException;
+import com.proiect.CourierAPP.exceptions.UnauthorizedUserException;
+import com.proiect.CourierAPP.exceptions.UserNotFoundException;
 import com.proiect.CourierAPP.model.Order;
 import com.proiect.CourierAPP.repository.OrderRepository;
+import com.proiect.CourierAPP.repository.UserRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -16,31 +23,49 @@ import java.util.List;
 public class OrderService {
 
     private final OrderRepository orderRepository;
+    private final UserRepository userRepository;
+    private final TokenService tokenService;
+    private final ModelMapper modelMapper;
 
-    public Order createOrder(Order order) {
-        return orderRepository.save(order);
+    public Set<GetOrdersDto> getAllOrders(String userName) {
+        if (tokenService.isAuthenticatedUser(userName) || tokenService.isAdmin()) {
+            var user = userRepository.findByUserName(userName).orElseThrow(UserNotFoundException::new);
+            var userOrders = orderRepository.findOrdersByUserId(user.getId());
+            return userOrders.stream().map(order -> modelMapper.map(order, GetOrdersDto.class))
+                    .collect(Collectors.toSet());
+        } else {
+            throw new UnauthorizedUserException();
+        }
     }
 
-    public List<Order> getAllOrders() {
-        return orderRepository.findAll();
+    public GetOrdersDto getOrderById(String userName, UUID id) {
+        if (tokenService.isAuthenticatedUser(userName) || tokenService.isAdmin()) {
+            var order = orderRepository.findById(id);
+            return modelMapper.map(order, GetOrdersDto.class);
+        } else {
+            throw new UnauthorizedUserException();
+        }
     }
 
-    public Order getOrderById(Long id) {
-        return orderRepository.findById(id)
-                .orElseThrow(EntityNotFoundException::new);
+    public Set<Order> getAllOrdersByUserId(UUID userId) {
+        var userOrders = orderRepository.findOrdersByUserId(userId);
+        return userOrders;
     }
 
-    public Order updateOrder(Long id, Order updatedOrder) {
-        Order existingOrder = getOrderById(id);
-        existingOrder.setOrderDate(updatedOrder.getOrderDate());
-        existingOrder.setDeliveryDate(updatedOrder.getDeliveryDate());
-        existingOrder.setStatus(updatedOrder.getStatus());
-        existingOrder.setClient(updatedOrder.getClient());
-        return orderRepository.save(existingOrder);
+    public GetOrdersDto updateOrder(UUID id, AddOrderDto updatedOrder, String userName) {
+        if (tokenService.isAuthenticatedUser(userName) || tokenService.isAdmin()) {
+            var order = orderRepository.findById(id);
+            return modelMapper.map(order.map(o -> {
+                o.setDescription(updatedOrder.getDescription());
+                return orderRepository.save(o);
+            }), GetOrdersDto.class);
+        } else {
+            throw new UnauthorizedUserException();
+        }
     }
 
-    public void deleteOrder(Long id) {
-        Order existingOrder = getOrderById(id);
-        orderRepository.delete(existingOrder);
+    public void deleteOrder(UUID id) {
+        var order = orderRepository.findById(id).orElseThrow(OrderNotFoundException::new);
+        orderRepository.delete(order);
     }
 }

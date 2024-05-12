@@ -1,9 +1,9 @@
-package com.proiect.CourierAPP.resource;
+package com.proiect.CourierAPPAuth.resource;
 
-import com.proiect.CourierAPP.dtos.AuthenticationRequest;
-import com.proiect.CourierAPP.dtos.UserDto;
-import com.proiect.CourierAPP.service.AuthenticationResponse;
-import com.proiect.CourierAPP.service.AuthenticationService;
+import com.proiect.CourierAPPAuth.dtos.AuthenticationRequest;
+import com.proiect.CourierAPPAuth.dtos.UserDto;
+import com.proiect.CourierAPPAuth.service.AuthenticationResponse;
+import com.proiect.CourierAPPAuth.service.AuthenticationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,7 +16,7 @@ public class AuthenticationController {
 
     private final AuthenticationService service;
 
-    @PostMapping("/registration")
+    @PostMapping("/register")
     public ResponseEntity<AuthenticationResponse> register(
             @RequestBody UserDto request
     ) {

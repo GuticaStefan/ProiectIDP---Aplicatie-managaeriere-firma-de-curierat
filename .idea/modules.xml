@@ -2,7 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/ProiectIDP---Aplicatie-managaeriere-firma-de-curierat.iml" filepath="$PROJECT_DIR$/.idea/ProiectIDP---Aplicatie-managaeriere-firma-de-curierat.iml" />
+      <module fileurl="file://$PROJECT_DIR$/CourierAPP/CourierAPP.iml" filepath="$PROJECT_DIR$/CourierAPP/CourierAPP.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/ProiectPWEB---Aplicatie-managaeriere-firma-de-curierat.iml" filepath="$PROJECT_DIR$/.idea/ProiectPWEB---Aplicatie-managaeriere-firma-de-curierat.iml" />
     </modules>
   </component>
 </project>
