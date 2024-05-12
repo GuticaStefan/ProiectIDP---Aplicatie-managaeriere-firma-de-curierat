@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:latest
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - backend
+
+  auth-service:
+    build: ./auth-microservice
+    image: auth-service:latest
+    environment:
+      MONGO_URI: mongodb://mongodb:27017/myappdb
+      ACCESS_TOKEN_SECRET: token_secret_blabla
+    depends_on:
+      - mongodb
+    ports:
+      - "3000:3000"
+    networks:
+      - backend
+
+  business-service:
+    build: ./business-service
+    image: business-service:latest
+    environment:
+      AUTH_SERVICE_URL: http://auth-service:3000
+    ports:
+      - "5000:5000"
+    networks:
+      - backend
+
+  db-util:
+    build: ./db-utilitary
+    image: db-utilitary-service:latest
+    environment:
+      MONGO_URL: mongodb://mongodb:27017/
+    ports:
+      - "4000:4000"
+    depends_on:
+      - mongodb
+    networks:
+      - backend
+
+  portainer:
+    image: portainer/portainer-ce
+    command: -H unix:///var/run/docker.sock
+    ports:
+      - "9000:9000"
+    volumes:
+      - portainer_data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+    networks:
+      - backend
+
+networks:
+  backend:
+
+volumes:
+  mongo_data:
+    driver: local
+  portainer_data:
+    driver: local
